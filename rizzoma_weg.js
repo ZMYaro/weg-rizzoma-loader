@@ -4,6 +4,7 @@
 var WEG_API_BASE_URL = "http://wavygallery.appspot.com/api/v0/";
 var GADGETS_BUTTON_SELECTOR = ".insert-gadget";
 var GADGETS_MENU_SELECTOR = ".js-gadget-popup-menu-container .internal-container";
+var GADGET_BUTTON_SELECTOR = ".gadget-icon";
 
 // Used to save the cursor position in the wave
 var activeRange;
@@ -25,6 +26,9 @@ function init() {
 }
 
 function createRandomGadgetButton() {
+	var gadgetsList = document.querySelector(GADGETS_MENU_SELECTOR);
+	gadgetsList.removeChild(gadgetsList.getElementsByTagName("br")[0]);
+	
 	var randomButton = document.createElement("button");
 	randomButton.className = "gadget-icon";
 	randomButton.style.whiteSpace = "normal";
@@ -43,7 +47,7 @@ function createRandomGadgetButton() {
 			insertGadget(data[Math.floor(Math.random() * data.length)].gadgetURL);
 		});
 	}, false);
-	document.querySelector(GADGETS_MENU_SELECTOR).appendChild(randomButton);
+	gadgetsList.appendChild(randomButton);
 }
 function createSearchContainer() {
 	function searchFor(query) {
@@ -68,12 +72,12 @@ function createSearchContainer() {
 			makeWEGAPICall("search.json?q=" + encodeURIComponent(searchBox.value), function(data) {
 				searchButton.classList.remove("search-icon-wait");
 				searchButton.disabled = false;
-		
+				
 				if(data.length === 0) {
 					return;
 				}
 		
-				var buttons = document.querySelector(GADGETS_MENU_SELECTOR).getElementsByTagName("button");
+				var buttons = document.querySelector(GADGETS_MENU_SELECTOR).querySelectorAll(GADGET_BUTTON_SELECTOR);
 		
 				for(var i = 0; i < buttons.length; i++) {
 					if(buttons[i].getAttribute("gadgeturl")) {
@@ -87,7 +91,7 @@ function createSearchContainer() {
 			});
 		}
 	}
-
+	
 	var searchBox = document.createElement("input");
 	searchBox.id = "wegQuery";
 	searchBox.type = "search";
@@ -113,10 +117,11 @@ function createSearchContainer() {
 		sel.removeAllRanges();
 		sel.addRange(activeRange);
 	}, false);
-
+	
 	var searchButton = document.createElement("button");
 	searchButton.className = "search-icon";
 	searchButton.style.border = "0 none transparent";
+	searchButton.style.marginTop = "0";
 	searchButton.addEventListener("click", function(e) {
 		// Take the focus out of the search box.
 		// (This prevents a glitch that puts the wave in a read-only mode.)
@@ -202,6 +207,9 @@ function saveButtonAttributes(button) {
 	if(!button.dataset.oldgadgeturl) {
 		button.dataset.oldgadgeturl = button.getAttribute("gadgetURL");
 	}
+	if(!button.dataset.oldbg) {
+		button.dataset.oldbg = button.style.background;
+	}
 }
 function restoreButton(button) {
 	button.disabled = false;
@@ -212,7 +220,9 @@ function restoreButton(button) {
 	if(button.dataset.oldtitle) {
 		button.title = button.dataset.oldtitle;
 	}
-	button.style.background = null;
+	if(button.dataset.oldbg) {
+		button.style.background = button.dataset.oldbg;
+	}
 	button.style.backgroundPosition = null;
 }
 
